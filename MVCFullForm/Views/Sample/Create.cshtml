@@ -1,0 +1,161 @@
+﻿@model MVCFullForm.Models.Sample
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create</h2>
+
+
+@using (Html.BeginForm("Create", "Sample", FormMethod.Post, new { enctype = "multipart/form-data" }))
+
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Sample</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Gender, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <table>
+                    @foreach (var g in Model.GenderList)
+                    {
+                        <tr>
+                            <td>
+                                @Html.RadioButtonFor(model=> model.Gender, g.Value, g.Selected)
+                            </td>
+                            <td>
+                                @Html.Label(g.Text, new { @for = g.Value })
+                            </td>
+                        </tr>
+                    }
+                </table>
+                @Html.ValidationMessageFor(model => model.Gender, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.CountryId, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.CountryId, ViewData["country"] as List<SelectListItem>, new { style = "width:250px", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.CountryId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.StateId, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.StateId, new SelectList(string.Empty, "Value", "Text"), new { style = "width:250px", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.StateId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.CityId, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.CityId, new SelectList(string.Empty, "Value", "Text"), new { style = "width:250px", @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.CityId, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Image, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBox("file", "", new { type = "file" })
+            </div>
+        </div>
+        <div class="form-group">
+            <table>
+                @for (int idx = 0; idx < Model.HobbiesList.Count; idx++)
+                {
+                    <tr>
+                        <td>
+                            @Html.HiddenFor(x => Model.HobbiesList[idx].ID)
+                            @Html.CheckBoxFor(x => Model.HobbiesList[idx].IsSelected)
+                            @Html.DisplayFor(x => Model.HobbiesList[idx].HobbiesName)
+                            @Html.HiddenFor(x => Model.HobbiesList[idx].HobbiesName)
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $("#CountryId").change(function () {
+                var countryId = $("#CountryId").val();
+                getState(countryId);
+            })
+
+            $("#StateId").change(function () {
+                var stateId = $("#StateId").val();
+                getCity(stateId);
+            })
+
+            function getState(cid) {
+                $("#StateId").empty();
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("GetStates")',
+                    dataType: 'json',
+                    data: { id: cid },
+                    success: function (states) {
+                        $.each(states, function (i, state) {
+                            $("#StateId").append('<option value="' + state.Value + '">' +
+                                state.Text + '</option>');
+                        });
+                    },
+                    error: function (ex) {
+                        alert('Failed to retrieve states.' + ex);
+                    }
+                });
+                return false;
+            }
+
+            function getCity(sId) {
+                $("#CityId").empty();
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("GetCity")',
+                    dataType: 'json',
+                    data: { id: sId },
+                    success: function (citys) {
+                        $.each(citys, function (i, city) {
+                            $("#CityId").append('<option value="' + city.Value + '">' + city.Text + '</option>');
+                        });
+                    },
+                    error: function (ex) {
+                        alert('Failed to retrieve states.' + ex);
+                    }
+                });
+                return false;
+            }
+        });
+
+    </script>
+}
